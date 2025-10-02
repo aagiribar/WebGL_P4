@@ -1,0 +1,7 @@
+.codesandbox
+.parcel-cache
+dist
+node_modules
+.eslintrc.json
+*.pdf
+package-lock.json

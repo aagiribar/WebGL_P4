@@ -45,6 +45,51 @@ var player = {
   ori: -Math.PI / 2,
 };
 
+var blueCube = {
+  x: 0,
+  y: 0,
+  z: 0,
+  height: 1,
+  width: 1,
+  depth: 1,
+  color: [0.3, 0.5, 1, 1],
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
+}
+
+var orangeCube = {
+  x: 0,
+  y: 1,
+  z: 0,
+  height: 0.5,
+  width: 0.5,
+  depth: 0.5,
+  color: [1, 0.7, 0, 1],
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
+}
+
+var purpleCube = {
+  x: 0,
+  y: 1.5,
+  z: 0,
+  height: 0.25,
+  width: 0.25,
+  depth: 0.25,
+  color: [0.7, 0, 1, 1],
+  rotateX: 0,
+  rotateY: 45,
+  rotateZ: 0,
+}
+
+var objects = [
+  blueCube,
+  orangeCube,
+  purpleCube,
+];
+
 /*var settings = {
   translateX: 0.0,
   translateY: 0.0,
@@ -266,7 +311,10 @@ function render() {
   //mat4.rotateX(modelMatrix, modelMatrix, rotateX);
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
-  renderCube();
+  for (let object of objects) {
+    drawObject(object);
+  }
+
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
   // drawGround
@@ -281,7 +329,7 @@ function render() {
   window.requestAnimationFrame(render);
 }
 
-function renderCube() {
+function renderCube(color) {
   glPushMatrix();
   mat4.translate(modelMatrix, modelMatrix, [-0.5, 0, -0.5]);
   gl.uniformMatrix4fv(modelMatrixLoc, false, modelMatrix);
@@ -301,46 +349,17 @@ function renderCube() {
 
   // create faces
   const arrayF = new Uint16Array([
-    1,
-    0,
-    3,
-    1,
-    3,
-    2, // cara trasera
-    4,
-    5,
-    6,
-    4,
-    6,
-    7, // cara delantera
-    7,
-    6,
-    2,
-    7,
-    2,
-    3, // cara superior
-    0,
-    1,
-    5,
-    0,
-    5,
-    4, // cara inferior
-    5,
-    1,
-    2,
-    5,
-    2,
-    6, // cara derecha
-    0,
-    4,
-    7,
-    0,
-    7,
-    3, // cara izquierda
+    1, 0, 3,  1, 3, 2, // cara trasera
+    4, 5, 6,  4, 6, 7, // cara delantera
+    7, 6, 2,  7, 2, 3, // cara superior
+    0, 1, 5,  0, 5, 4, // cara inferior
+    5, 1, 2,  5, 2, 6, // cara derecha
+    0, 4, 7,  0, 7, 3, // cara izquierda
   ]);
+
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, arrayF, gl.STATIC_DRAW);
   // draw cube
-  gl.uniform4fv(colorLocation, [0.3, 0.5, 1, 1]);
+  gl.uniform4fv(colorLocation, color);
   gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
   glPopMatrix();
 }
@@ -373,6 +392,18 @@ function renderGround(size, n) {
   gl.bufferData(gl.ARRAY_BUFFER, arrayV, gl.STATIC_DRAW);
   gl.uniform4fv(colorLocation, [0, 0, 0, 1]);
   gl.drawArrays(gl.LINES, 0, 4 * n);
+  glPopMatrix();
+}
+
+function drawObject(object) {
+  glPushMatrix();
+  mat4.translate(modelMatrix, modelMatrix, [object.x, object.y, object.z]);
+  mat4.scale(modelMatrix, modelMatrix, [object.width, object.height, object.depth]);
+  mat4.rotateX(modelMatrix, modelMatrix, object.rotateX);
+  mat4.rotateY(modelMatrix, modelMatrix, object.rotateY);
+  mat4.rotateZ(modelMatrix, modelMatrix, object.rotateZ);
+  gl.uniformMatrix4fv(modelMatrixLoc, false, modelMatrix);
+  renderCube(object.color);
   glPopMatrix();
 }
 

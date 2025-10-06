@@ -43,6 +43,7 @@ var player = {
   y: 0.5,
   z: 10,
   ori: -Math.PI / 2,
+  viewAngle: 0,
 };
 
 var blueCube = {
@@ -211,6 +212,22 @@ function onKeyDown(key) {
       player.ori += 0.02;
       break;
     }
+    // A key
+    case 65: {
+      player.viewAngle += 0.02;
+      if (player.viewAngle > 5) {
+        player.viewAngle = 5;
+      }
+      break;
+    }
+    // Z key
+    case 90: {
+      player.viewAngle -= 0.02;
+      if (player.viewAngle < -5) {
+        player.viewAngle = -5;
+      }
+      break;
+    }
   }
 }
 
@@ -345,7 +362,7 @@ function render() {
   const eye = [player.x, player.y, player.z];
   const center = [
     player.x + Math.cos(player.ori),
-    player.y,
+    player.y + player.viewAngle,
     player.z + Math.sin(player.ori),
   ];
   mat4.lookAt(modelMatrix, eye, center, [0, 1, 0]);

@@ -84,10 +84,55 @@ var purpleCube = {
   rotateZ: 0,
 }
 
+var movementXCube = {
+  x: 1.5,
+  y: 0,
+  z: 1.5,
+  height: 1.5,
+  width: 0.5,
+  depth: 0.5,
+  color: [1, 0.4, 0.7, 1],
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
+  xSpeed: 0.01
+}
+
+var movementYCube = {
+  x: -1.5,
+  y: 0.5,
+  z: -1.5,
+  height: 0.5,
+  width: 1,
+  depth: 1.5,
+  color: [0.8, 1, 0.6, 1],
+  rotateX: 60,
+  rotateY: 0,
+  rotateZ: 0,
+  ySpeed: 0.02
+}
+
+var movementZCube = {
+  x: -3,
+  y: 0,
+  z: -4.5,
+  height: 1,
+  width: 2,
+  depth: 2,
+  color: [0.2, 0.2, 1, 1],
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
+  zSpeed: 0.03
+}
+
 var objects = [
   blueCube,
   orangeCube,
   purpleCube,
+  movementXCube,
+  movementYCube,
+  movementZCube,
 ];
 
 /*var settings = {
@@ -142,6 +187,7 @@ function zoom(e) {
 
 document.onkeydown = onKeyDown;
 function onKeyDown(key) {
+  key.preventDefault();
   switch (key.keyCode) {
     // up arrow
     case 38: {
@@ -311,7 +357,32 @@ function render() {
   //mat4.rotateX(modelMatrix, modelMatrix, rotateX);
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
+  
   for (let object of objects) {
+    if (object.xSpeed !== undefined) {
+      object.x += object.xSpeed;
+      if (object.x > 8 || object.x < -8) {
+        object.xSpeed = -object.xSpeed;
+      }
+      object.color = [Math.abs(object.x / 8), object.color[1], object.color[2], 1];
+    }
+
+    if (object.ySpeed !== undefined) {
+      object.y += object.ySpeed;
+      if (object.y > 5 || object.y <= object.height) {
+        object.ySpeed = -object.ySpeed;
+      }
+      object.color = [object.color[0], Math.abs(object.y / 5), object.color[2], 1];
+    }
+
+    if (object.zSpeed !== undefined) {
+      object.z += object.zSpeed;
+      if (object.z > 8 || object.z < -8) {
+        object.zSpeed = -object.zSpeed;
+      }
+      object.color = [object.color[0], object.color[1], Math.abs(object.z / 8), 1];
+    }
+
     drawObject(object);
   }
 

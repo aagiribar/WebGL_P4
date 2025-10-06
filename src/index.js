@@ -136,11 +136,9 @@ var objects = [
   movementZCube,
 ];
 
-/*var settings = {
-  translateX: 0.0,
-  translateY: 0.0,
-  rotateZ: 0.0,
-};*/
+var settings = {
+  speed: 1.0,
+};
 
 var matrixStack = [];
 function glPushMatrix() {
@@ -236,11 +234,9 @@ function init() {
   canvas = document.getElementById("my_Canvas");
   gl = canvas.getContext("webgl2");
 
-  /*// create GUI
+  // create GUI
   var gui = new dat.GUI();
-  gui.add(settings, "translateX", -1.0, 1.0, 0.01);
-  gui.add(settings, "translateY", -1.0, 1.0, 0.01);
-  gui.add(settings, "rotateZ", -180, 180);
+  gui.add(settings, "speed", 0, 2, 0.1);
 
   // Posicionar el GUI debajo del canvas
   const canvasRect = canvas.getBoundingClientRect();
@@ -251,7 +247,6 @@ function init() {
     window.scrollX +
     (canvasRect.width - gui.domElement.offsetWidth) / 2 +
     "px";
-    */
 
   //========== STEP 2: Create and compile shaders ==========
 
@@ -377,7 +372,7 @@ function render() {
   
   for (let object of objects) {
     if (object.xSpeed !== undefined) {
-      object.x += object.xSpeed;
+      object.x += object.xSpeed * settings.speed;
       if (object.x > 8 || object.x < -8) {
         object.xSpeed = -object.xSpeed;
       }
@@ -385,7 +380,7 @@ function render() {
     }
 
     if (object.ySpeed !== undefined) {
-      object.y += object.ySpeed;
+      object.y += object.ySpeed * settings.speed;
       if (object.y > 5 || object.y <= object.height) {
         object.ySpeed = -object.ySpeed;
       }
@@ -393,7 +388,7 @@ function render() {
     }
 
     if (object.zSpeed !== undefined) {
-      object.z += object.zSpeed;
+      object.z += object.zSpeed * settings.speed;
       if (object.z > 8 || object.z < -8) {
         object.zSpeed = -object.zSpeed;
       }

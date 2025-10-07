@@ -38,6 +38,10 @@ var index_buffer;
 
 var zoomFactor = 1;
 
+const xLimit = 8;
+const yLimit = 5;
+const zLimit = 8;
+
 var player = {
   x: 0,
   y: 0.5,
@@ -49,7 +53,11 @@ var player = {
   verticalCameraMovement: 0,
   playerSpeed: 0.02,
   cameraSpeed: 0.005,
+  sprintBoost: 2,
+  isSprinting: false,
 };
+
+player.sprintSpeed = player.playerSpeed * player.sprintBoost;
 
 var blueCube = {
   x: 0,
@@ -156,39 +164,6 @@ function glPopMatrix() {
   modelMatrix = matrixStack.pop();
 }
 
-/*
-var rotateX = 0,
-  rotateY = 0;
-var mouseX, mouseY;
-
-// add mouse handlers
-document.onmousedown = onMouseDown;
-document.onmousemove = onMouseMove;
-document.onwheel = zoom;
-
-function onMouseDown(e) {
-  if (e.buttons == 1 && e.srcElement == canvas) {
-    mouseX = e.pageX;
-    mouseY = e.pageY;
-  }
-}
-function onMouseMove(e) {
-  if (e.buttons == 1 && e.srcElement == canvas) {
-    rotateY = rotateY + (e.pageX - mouseX) * 0.01;
-    rotateX = rotateX + (e.pageY - mouseY) * 0.01;
-    mouseX = e.pageX;
-    mouseY = e.pageY;
-    //console.log("move = ("+mouseX+","+mouseY+")");
-  }
-}
-
-
-function zoom(e) {
-  if (e.deltaY < 0) zoomFactor *= 1.1;
-  else zoomFactor *= 0.9;
-}
-*/
-
 document.onkeydown = onKeyDown;
 document.onkeyup = onKeyUp;
 
@@ -225,6 +200,11 @@ function onKeyDown(key) {
       player.verticalCameraMovement = -player.cameraSpeed;
       break;
     }
+    // shift key
+    case 16: {
+      player.isSprinting = true;
+      break;
+    }
   }
 }
 
@@ -239,6 +219,10 @@ function onKeyUp(key) {
 
   if (key.keyCode == 65 || key.keyCode == 90) {
     player.verticalCameraMovement = 0;
+  }
+
+  if (key.keyCode == 16) {
+    player.isSprinting = false;
   }
 }
 
@@ -351,8 +335,12 @@ function render() {
   // Bind appropriate array buffer to it
   gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
 
-  player.x += player.playerMovement * Math.cos(player.ori);
-  player.z += player.playerMovement * Math.sin(player.ori);
+  // update player position
+  let actualPlayerMovement = player.isSprinting ? player.playerMovement * player.sprintBoost : player.playerMovement;
+
+  player.x += actualPlayerMovement * Math.cos(player.ori);
+  player.z += actualPlayerMovement * Math.sin(player.ori);
+  
   player.ori += player.horizontalCameraMovement;
   player.viewAngle += player.verticalCameraMovement;
   
@@ -387,19 +375,14 @@ function render() {
     player.z + Math.sin(player.ori),
   ];
   mat4.lookAt(modelMatrix, eye, center, [0, 1, 0]);
-
-  // mouse transformations
   mat4.scale(modelMatrix, modelMatrix, [zoomFactor, zoomFactor, zoomFactor]);
-  // rotate scene
-  //mat4.rotateY(modelMatrix, modelMatrix, rotateY);
-  //mat4.rotateX(modelMatrix, modelMatrix, rotateX);
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
   
   for (let object of objects) {
     if (object.xSpeed !== undefined) {
       object.x += object.xSpeed * settings.speed;
-      if (object.x > 8 || object.x < -8) {
+      if (object.x > xLimit || object.x < -xLimit) {
         object.xSpeed = -object.xSpeed;
       }
       object.color = [Math.abs(object.x / 8), object.color[1], object.color[2], 1];
@@ -407,7 +390,7 @@ function render() {
 
     if (object.ySpeed !== undefined) {
       object.y += object.ySpeed * settings.speed;
-      if (object.y > 5 || object.y <= object.height) {
+      if (object.y > yLimit || object.y <= object.height) {
         object.ySpeed = -object.ySpeed;
       }
       object.color = [object.color[0], Math.abs(object.y / 5), object.color[2], 1];
@@ -415,7 +398,7 @@ function render() {
 
     if (object.zSpeed !== undefined) {
       object.z += object.zSpeed * settings.speed;
-      if (object.z > 8 || object.z < -8) {
+      if (object.z > zLimit || object.z < -zLimit) {
         object.zSpeed = -object.zSpeed;
       }
       object.color = [object.color[0], object.color[1], Math.abs(object.z / 8), 1];

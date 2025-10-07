@@ -44,6 +44,11 @@ var player = {
   z: 10,
   ori: -Math.PI / 2,
   viewAngle: 0,
+  playerMovement: 0,
+  horizontalCameraMovement: 0,
+  verticalCameraMovement: 0,
+  playerSpeed: 0.02,
+  cameraSpeed: 0.005,
 };
 
 var blueCube = {
@@ -185,47 +190,55 @@ function zoom(e) {
 */
 
 document.onkeydown = onKeyDown;
+document.onkeyup = onKeyUp;
+
 function onKeyDown(key) {
   key.preventDefault();
   switch (key.keyCode) {
     // up arrow
     case 38: {
-      player.x = player.x + 0.1 * Math.cos(player.ori);
-      player.z = player.z + 0.1 * Math.sin(player.ori);
+      player.playerMovement = player.playerSpeed;
       break;
     }
     // down arrow
     case 40: {
-      player.x = player.x - 0.1 * Math.cos(player.ori);
-      player.z = player.z - 0.1 * Math.sin(player.ori);
+      player.playerMovement = -player.playerSpeed;
       break;
     }
     // left arrow
     case 37: {
-      player.ori -= 0.02;
+      player.horizontalCameraMovement = -player.cameraSpeed;
       break;
     }
     // down arrow
     case 39: {
-      player.ori += 0.02;
+      player.horizontalCameraMovement = player.cameraSpeed;
       break;
     }
     // A key
     case 65: {
-      player.viewAngle += 0.02;
-      if (player.viewAngle > 5) {
-        player.viewAngle = 5;
-      }
+      player.verticalCameraMovement = player.cameraSpeed;
       break;
     }
     // Z key
     case 90: {
-      player.viewAngle -= 0.02;
-      if (player.viewAngle < -5) {
-        player.viewAngle = -5;
-      }
+      player.verticalCameraMovement = -player.cameraSpeed;
       break;
     }
+  }
+}
+
+function onKeyUp(key) {
+  if (key.keyCode == 38 || key.keyCode == 40) {
+    player.playerMovement = 0;
+  }
+
+  if (key.keyCode == 37 || key.keyCode == 39) {
+    player.horizontalCameraMovement = 0;
+  }
+
+  if (key.keyCode == 65 || key.keyCode == 90) {
+    player.verticalCameraMovement = 0;
   }
 }
 
@@ -337,6 +350,19 @@ function render() {
 
   // Bind appropriate array buffer to it
   gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+
+  player.x += player.playerMovement * Math.cos(player.ori);
+  player.z += player.playerMovement * Math.sin(player.ori);
+  player.ori += player.horizontalCameraMovement;
+  player.viewAngle += player.verticalCameraMovement;
+  
+  if (player.viewAngle > 5) {
+    player.viewAngle = 5;
+  }
+
+  if (player.viewAngle < -5) {
+    player.viewAngle = -5;
+  }
 
   // draw geometry
   // Set the model Matrix.

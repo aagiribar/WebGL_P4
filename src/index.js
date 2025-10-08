@@ -154,6 +154,23 @@ var chasingCube = {
   chasingSpeed: 0.01,
 }
 
+var bullet = {
+  x: 0,
+  y: 0.25,
+  z: 10,
+  height: 0.1,
+  width: 0.1,
+  depth: 0.1,
+  color: [0, 0, 0, 1],
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
+  xSpeed: 0,
+  ySpeed: 0,
+  zSpeed: 0,
+  visible: false,
+}
+
 var objects = [
   blueCube,
   orangeCube,
@@ -162,6 +179,7 @@ var objects = [
   movementYCube,
   movementZCube,
   chasingCube,
+  bullet
 ];
 
 var settings = {
@@ -219,6 +237,11 @@ function onKeyDown(key) {
     // shift key
     case 16: {
       player.isSprinting = true;
+      break;
+    }
+    // space key
+    case 32: {
+      shootBullet()
       break;
     }
   }
@@ -406,21 +429,35 @@ function render() {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
   
   for (let object of objects) {
-    if (object.xSpeed !== undefined) {
+    if (object === bullet) {
       object.x += object.xSpeed * settings.speed;
-      if (object.x > xLimit || object.x < -xLimit) {
-        object.xSpeed = -object.xSpeed;
+      if (Math.abs(object.x - player.x) >= xLimit * 2) {
+        object.xSpeed = 0;
+        object.visible = false;
       }
-      object.color = [Math.abs(object.x / 8), object.color[1], object.color[2], 1];
-    }
 
-    if (object.ySpeed !== undefined) {
-      object.y += object.ySpeed * settings.speed;
-      if (object.y > yLimit || object.y <= object.height) {
-        object.ySpeed = -object.ySpeed;
+      object.z += object.zSpeed * settings.speed;
+      if (Math.abs(object.z - player.z) >= zLimit * 2) {
+        object.zSpeed = 0;
+        object.visible = false;
       }
-      object.color = [object.color[0], Math.abs(object.y / 5), object.color[2], 1];
     }
+    else {
+      if (object.xSpeed !== undefined) {
+        object.x += object.xSpeed * settings.speed;
+        if (object.x > xLimit || object.x < -xLimit) {
+          object.xSpeed = -object.xSpeed;
+        }
+        object.color = [Math.abs(object.x / 8), object.color[1], object.color[2], 1];
+      }
+      
+      if (object.ySpeed !== undefined) {
+        object.y += object.ySpeed * settings.speed;
+        if (object.y > yLimit || object.y <= object.height) {
+          object.ySpeed = -object.ySpeed;
+        }
+      object.color = [object.color[0], Math.abs(object.y / 5), object.color[2], 1];
+      }
 
     if (object.zSpeed !== undefined) {
       object.z += object.zSpeed * settings.speed;
@@ -428,9 +465,12 @@ function render() {
         object.zSpeed = -object.zSpeed;
       }
       object.color = [object.color[0], object.color[1], Math.abs(object.z / 8), 1];
+      }
     }
 
-    drawObject(object);
+    if (object.visible === undefined || object.visible === true) {
+      drawObject(object);
+    }
   }
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
@@ -440,8 +480,6 @@ function render() {
 
   // Unbind the buffer
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-  //document.getElementById("debug").textContent = "y = " + player1.y.toFixed(2);
 
   // start animation loop
   window.requestAnimationFrame(render);
@@ -523,6 +561,16 @@ function drawObject(object) {
   gl.uniformMatrix4fv(modelMatrixLoc, false, modelMatrix);
   renderCube(object.color);
   glPopMatrix();
+}
+
+function shootBullet() {
+  bullet.x = player.x;
+  bullet.z = player.z;
+
+  bullet.xSpeed = 0.001 * player.x + Math.cos(player.ori);
+  bullet.zSpeed = 0.001 * player.z + Math.sin(player.ori);
+
+  bullet.visible = true;
 }
 
 // CÓDIGO PRINCIPAL

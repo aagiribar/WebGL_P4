@@ -1,7 +1,7 @@
 {
-  "name": "javascript",
+  "name": "webgl_p4",
   "version": "1.0.0",
-  "description": "The JavaScript template",
+  "description": "Perspectiva en WebGL",
   "scripts": {
     "start": "parcel ./src/index.html",
     "build": "parcel build ./src/index.html"

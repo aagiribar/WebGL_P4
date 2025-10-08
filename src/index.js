@@ -28,6 +28,7 @@ void main(void) {
 }
 `;
 
+// Global variables
 var canvas, gl;
 var colorLocation;
 var vertex_buffer;
@@ -35,13 +36,14 @@ var modelMatrixLoc;
 var viewMatrixLoc;
 var modelMatrix;
 var index_buffer;
-
 var zoomFactor = 1;
 
+// Limits for drawing objects
 const xLimit = 8;
 const yLimit = 5;
 const zLimit = 8;
 
+// Player objects
 var player = {
   x: 0,
   y: 0.5,
@@ -57,8 +59,10 @@ var player = {
   isSprinting: false,
 };
 
+// Calculation of player sprint speed
 player.sprintSpeed = player.playerSpeed * player.sprintBoost;
 
+// Scene objects
 var blueCube = {
   x: 0,
   y: 0,
@@ -140,7 +144,7 @@ var movementZCube = {
   zSpeed: 0.03
 }
 
-var chasingCube = {
+var chaserCube = {
   x: 5,
   y: 0,
   z: 5,
@@ -171,6 +175,7 @@ var bullet = {
   visible: false,
 }
 
+// Array of objects
 var objects = [
   blueCube,
   orangeCube,
@@ -178,16 +183,20 @@ var objects = [
   movementXCube,
   movementYCube,
   movementZCube,
-  chasingCube,
+  chaserCube,
   bullet
 ];
 
+// Settings for GUI
 var settings = {
   speed: 1.0,
   isChasing: false,
 };
 
+// Matrix stack
 var matrixStack = [];
+
+// Functions for matrix stack operations
 function glPushMatrix() {
   const matrix = mat4.create();
   mat4.copy(matrix, modelMatrix);
@@ -198,9 +207,11 @@ function glPopMatrix() {
   modelMatrix = matrixStack.pop();
 }
 
+// Keyboard event handlers
 document.onkeydown = onKeyDown;
 document.onkeyup = onKeyUp;
 
+// Keyboard key pressed
 function onKeyDown(key) {
   key.preventDefault();
   switch (key.keyCode) {
@@ -247,19 +258,24 @@ function onKeyDown(key) {
   }
 }
 
+// Keyboard key released
 function onKeyUp(key) {
+  // Stop player movement
   if (key.keyCode == 38 || key.keyCode == 40) {
     player.playerMovement = 0;
   }
 
+  // Stop horizontal camera movement
   if (key.keyCode == 37 || key.keyCode == 39) {
     player.horizontalCameraMovement = 0;
   }
 
+  // Stop vertical camera movement
   if (key.keyCode == 65 || key.keyCode == 90) {
     player.verticalCameraMovement = 0;
   }
 
+  // Stop sprinting
   if (key.keyCode == 16) {
     player.isSprinting = false;
   }
@@ -375,19 +391,20 @@ function render() {
   // Bind appropriate array buffer to it
   gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
 
-  // update player position
+  // Update player position
   let actualPlayerMovement = player.isSprinting ? player.playerMovement * player.sprintBoost : player.playerMovement;
 
   player.x += actualPlayerMovement * Math.cos(player.ori);
   player.z += actualPlayerMovement * Math.sin(player.ori);
   
-  // update camera vector
+  // Update camera vector
   let actualHorizontalCameraMovement = player.isSprinting ? player.horizontalCameraMovement * player.sprintBoost : player.horizontalCameraMovement;
   let actualVerticalCameraMovement = player.isSprinting ? player.verticalCameraMovement * player.sprintBoost : player.verticalCameraMovement;
 
   player.ori += actualHorizontalCameraMovement;
   player.viewAngle += actualVerticalCameraMovement;
   
+  // Limit vertical camera angle
   if (player.viewAngle > 5) {
     player.viewAngle = 5;
   }
@@ -396,9 +413,10 @@ function render() {
     player.viewAngle = -5;
   }
 
+  // Calculate new chaser cube coordinates
   if (settings.isChasing) {
-    chasingCube.x = chasingCube.x - (chasingCube.x - player.x) * chasingCube.chasingSpeed * settings.speed;
-    chasingCube.z = chasingCube.z - (chasingCube.z - player.z) * chasingCube.chasingSpeed * settings.speed;
+    chaserCube.x = chaserCube.x - (chaserCube.x - player.x) * chaserCube.chasingSpeed * settings.speed;
+    chaserCube.z = chaserCube.z - (chaserCube.z - player.z) * chaserCube.chasingSpeed * settings.speed;
   }
 
   // draw geometry
@@ -428,7 +446,10 @@ function render() {
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
   
+  // Draw objects
   for (let object of objects) {
+    // Calculate new bullet coordinates
+    // If bullet is away from player, disappears
     if (object === bullet) {
       object.x += object.xSpeed * settings.speed;
       if (Math.abs(object.x - player.x) >= xLimit * 2) {
@@ -442,6 +463,9 @@ function render() {
         object.visible = false;
       }
     }
+    // Calculate other objects position
+    // If an object reach the limit, it rebounds
+    // Color of objects is set depending on the coordinates
     else {
       if (object.xSpeed !== undefined) {
         object.x += object.xSpeed * settings.speed;
@@ -456,18 +480,19 @@ function render() {
         if (object.y > yLimit || object.y <= object.height) {
           object.ySpeed = -object.ySpeed;
         }
-      object.color = [object.color[0], Math.abs(object.y / 5), object.color[2], 1];
+        object.color = [object.color[0], Math.abs(object.y / 5), object.color[2], 1];
       }
-
-    if (object.zSpeed !== undefined) {
-      object.z += object.zSpeed * settings.speed;
-      if (object.z > zLimit || object.z < -zLimit) {
-        object.zSpeed = -object.zSpeed;
-      }
-      object.color = [object.color[0], object.color[1], Math.abs(object.z / 8), 1];
+      
+      if (object.zSpeed !== undefined) {
+        object.z += object.zSpeed * settings.speed;
+        if (object.z > zLimit || object.z < -zLimit) {
+          object.zSpeed = -object.zSpeed;
+        }
+        object.color = [object.color[0], object.color[1], Math.abs(object.z / 8), 1];
       }
     }
 
+    // Draw visible objects
     if (object.visible === undefined || object.visible === true) {
       drawObject(object);
     }
@@ -485,8 +510,11 @@ function render() {
   window.requestAnimationFrame(render);
 }
 
+// Function that render a cube
 function renderCube(color) {
   glPushMatrix();
+
+  // Position the cube
   mat4.translate(modelMatrix, modelMatrix, [-0.5, 0, -0.5]);
   gl.uniformMatrix4fv(modelMatrixLoc, false, modelMatrix);
   // create vertices
@@ -517,15 +545,19 @@ function renderCube(color) {
   // draw cube
   gl.uniform4fv(colorLocation, color);
   gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+
   glPopMatrix();
 }
 
 // draw squared floor
 function renderGround(size, n) {
   glPushMatrix();
+
+  // Position and scale grouns
   mat4.scale(modelMatrix, modelMatrix, [size, size, size]);
   mat4.translate(modelMatrix, modelMatrix, [-0.5, 0, -0.5]);
   gl.uniformMatrix4fv(modelMatrixLoc, false, modelMatrix);
+
   // creamos vector vértices
   var k = 0;
   const arrayV = new Float32Array(12 * n);
@@ -545,24 +577,34 @@ function renderGround(size, n) {
     arrayV[k++] = 0;
     arrayV[k++] = i / (n - 1);
   }
+
   gl.bufferData(gl.ARRAY_BUFFER, arrayV, gl.STATIC_DRAW);
   gl.uniform4fv(colorLocation, [0, 0, 0, 1]);
   gl.drawArrays(gl.LINES, 0, 4 * n);
+
   glPopMatrix();
 }
 
+// Function that draws an object
 function drawObject(object) {
   glPushMatrix();
+
+  // Position and scale the object
   mat4.translate(modelMatrix, modelMatrix, [object.x, object.y, object.z]);
   mat4.scale(modelMatrix, modelMatrix, [object.width, object.height, object.depth]);
+
+  // Rotate the object
   mat4.rotateX(modelMatrix, modelMatrix, object.rotateX);
   mat4.rotateY(modelMatrix, modelMatrix, object.rotateY);
   mat4.rotateZ(modelMatrix, modelMatrix, object.rotateZ);
+
   gl.uniformMatrix4fv(modelMatrixLoc, false, modelMatrix);
   renderCube(object.color);
+
   glPopMatrix();
 }
 
+// Function that shoots the bullet
 function shootBullet() {
   bullet.x = player.x;
   bullet.z = player.z;

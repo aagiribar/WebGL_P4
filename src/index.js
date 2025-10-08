@@ -140,6 +140,20 @@ var movementZCube = {
   zSpeed: 0.03
 }
 
+var chasingCube = {
+  x: 5,
+  y: 0,
+  z: 5,
+  height: 1,
+  width: 1,
+  depth: 0.5,
+  color: [1, 1, 1, 1],
+  rotateX: 0,
+  rotateY: 0,
+  rotateZ: 0,
+  chasingSpeed: 0.01,
+}
+
 var objects = [
   blueCube,
   orangeCube,
@@ -147,10 +161,12 @@ var objects = [
   movementXCube,
   movementYCube,
   movementZCube,
+  chasingCube,
 ];
 
 var settings = {
   speed: 1.0,
+  isChasing: false,
 };
 
 var matrixStack = [];
@@ -234,6 +250,7 @@ function init() {
   // create GUI
   var gui = new dat.GUI();
   gui.add(settings, "speed", 0, 2, 0.1);
+  gui.add(settings, "isChasing", false);
 
   // Posicionar el GUI debajo del canvas
   const canvasRect = canvas.getBoundingClientRect();
@@ -341,8 +358,12 @@ function render() {
   player.x += actualPlayerMovement * Math.cos(player.ori);
   player.z += actualPlayerMovement * Math.sin(player.ori);
   
-  player.ori += player.horizontalCameraMovement;
-  player.viewAngle += player.verticalCameraMovement;
+  // update camera vector
+  let actualHorizontalCameraMovement = player.isSprinting ? player.horizontalCameraMovement * player.sprintBoost : player.horizontalCameraMovement;
+  let actualVerticalCameraMovement = player.isSprinting ? player.verticalCameraMovement * player.sprintBoost : player.verticalCameraMovement;
+
+  player.ori += actualHorizontalCameraMovement;
+  player.viewAngle += actualVerticalCameraMovement;
   
   if (player.viewAngle > 5) {
     player.viewAngle = 5;
@@ -350,6 +371,11 @@ function render() {
 
   if (player.viewAngle < -5) {
     player.viewAngle = -5;
+  }
+
+  if (settings.isChasing) {
+    chasingCube.x = chasingCube.x - (chasingCube.x - player.x) * chasingCube.chasingSpeed * settings.speed;
+    chasingCube.z = chasingCube.z - (chasingCube.z - player.z) * chasingCube.chasingSpeed * settings.speed;
   }
 
   // draw geometry

@@ -1,5 +1,11 @@
 # Perspectiva en WebGL
 
+![Imagen de la escena](assets/scene.png)
+
+En este proyecto se renderiza, utilizando ```WebGL```, una escena con varios cubos que se mueven en varias direcciones. El objetivo es utilizar transformaciones de perspectiva, de manera que parezca que el usuario está caminando por la escena. En la escena hay cubos estásticos, cubos que se mueven en varias direcciones de forma constante, un cubo que persigue al jugador si se activa esa posibilidad. Además, existe la posibilidad de disparar cubos como si fueran balas.
+
+## Acceso a la versión web
+
 La versión web de este proyecto se encuentra en [este sandbox de codesandbox](https://n76qrr.csb.app/).
 
 El código se puede acceder desde [este enlace](https://codesandbox.io/p/sandbox/webgl-practica-4-n76qrr).
@@ -57,6 +63,8 @@ La simulación se controla con las siguientes teclas:
 8. ```Tecla Espacio```: Dispara una bala en la dirección en la que mira el jugador.
 
 Además, hay disponible una interfaz gráfica con las siguientes opciones:
+
+![Imagen de la interfaz de usuario](assets/gui.png)
 
 1. ```speed```: Modifica la velocidad de los objetos de la escena y la bala disparada por el jugador.
 2. ```isChasing```: Habilita que el cubo blanco que hay en la escena persiga al jugador.
